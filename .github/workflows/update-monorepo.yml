@@ -37,11 +37,6 @@ jobs:
       - name: Checkout submodule repo (this repo)
         uses: actions/checkout@v3
 
-      - name: Configure git
-        run: |
-          git config user.name "${{ inputs.username }}"
-          git config user.email "${{ inputs.email }}"
-
       - name: Clone monorepo
         run: |
           git clone https://x-access-token:${{ secrets.monorepo-read-pat }}@github.com/ChaosCantrip/DestinyTCG.git
@@ -51,6 +46,12 @@ jobs:
         run: |
           git submodule sync apps/${{ inputs.submodule-reference }}
           git submodule update --init apps/${{ inputs.submodule-reference }}
+
+      - name: Configure git
+        working-directory: DestinyTCG
+        run: |
+          git config user.name "${{ inputs.username }}"
+          git config user.email "${{ inputs.email }}"
 
       - name: Update submodule pointer
         working-directory: DestinyTCG/apps/${{ inputs.submodule-reference }}
