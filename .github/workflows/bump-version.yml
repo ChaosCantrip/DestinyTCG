@@ -1,0 +1,71 @@
+name: Bump Version on PR Merge
+
+on:
+    workflow_call:
+        inputs:
+            username:
+                description: "The username to use for git"
+                default: "ChaosCantrip [Automated]"
+                required: false
+                type: string
+            email:
+                description: "The email to use for git"
+                default: "dev@chaoscantrip.com"
+                required: false
+                type: string
+
+jobs:
+  bump-version:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Git
+        run: |
+          git config user.name "${{ inputs.username }}"
+          git config user.email "${{ inputs.email }}"
+
+      - name: Determine bump type from label (default to patch)
+        id: bump
+        run: |
+          LABELS=$(echo "${{ toJson(github.event.pull_request.labels) }}" | jq -r '.[].name')
+          if echo "$LABELS" | grep -q 'version:major'; then
+            echo "bump=major" >> $GITHUB_OUTPUT
+          elif echo "$LABELS" | grep -q 'version:minor'; then
+            echo "bump=minor" >> $GITHUB_OUTPUT
+          elif echo "$LABELS" | grep -q 'version:patch'; then
+            echo "bump=patch" >> $GITHUB_OUTPUT
+          else
+            echo "No version label found — defaulting to patch"
+            echo "bump=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          VERSION=$(jq -r '.version' version.json)
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          case "${{ steps.bump.outputs.bump }}" in
+            major)
+              MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor)
+              MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch)
+              PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+          jq --arg v "$NEW_VERSION" '.version = $v' version.json > tmp && mv tmp version.json
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit and tag new version
+        run: |
+          git add version.json
+          git commit -m "Bump version to ${{ steps.bump_version.outputs.new_version }}"
+          git tag "v${{ steps.bump_version.outputs.new_version }}"
+          git push origin main --tags
