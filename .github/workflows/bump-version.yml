@@ -1,27 +1,62 @@
 name: Bump Version on PR Merge
 
 on:
-    workflow_call:
-        inputs:
-            username:
-                description: "The username to use for git"
-                default: "ChaosCantrip [Automated]"
-                required: false
-                type: string
-            email:
-                description: "The email to use for git"
-                default: "dev@chaoscantrip.com"
-                required: false
-                type: string
+  workflow_call:
+    inputs:
+      pr_number:
+        description: "The pull request number to operate on"
+        required: true
+        type: number
+      username:
+        description: "The username to use for git"
+        default: "ChaosCantrip [Automated]"
+        required: false
+        type: string
+      email:
+        description: "The email to use for git"
+        default: "dev@chaoscantrip.com"
+        required: false
+        type: string
+      version_file:
+        description: "The file containing the version number"
+        default: "version.json"
+        required: false
+        type: string
 
 jobs:
+  add-patch-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add 'version:patch' label if no version label present
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ inputs.pr_number }};
+            const { data: pr } = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const labels = pr.labels.map(l => l.name);
+            const hasVersionLabel = labels.some(l => ['version:patch', 'version:minor', 'version:major'].includes(l));
+            if (!hasVersionLabel) {
+              await github.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['version:patch']
+              });
+            } else {
+              console.log('A version label is already present. No label added.');
+            }
+
   bump-version:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    needs: add-patch-label
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3   
 
       - name: Set up Git
         run: |
@@ -30,18 +65,24 @@ jobs:
 
       - name: Determine bump type from label (default to patch)
         id: bump
-        run: |
-          LABELS=$(echo "${{ toJson(github.event.pull_request.labels) }}" | jq -r '.[].name')
-          if echo "$LABELS" | grep -q 'version:major'; then
-            echo "bump=major" >> $GITHUB_OUTPUT
-          elif echo "$LABELS" | grep -q 'version:minor'; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
-          elif echo "$LABELS" | grep -q 'version:patch'; then
-            echo "bump=patch" >> $GITHUB_OUTPUT
-          else
-            echo "No version label found — defaulting to patch"
-            echo "bump=patch" >> $GITHUB_OUTPUT
-          fi
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ inputs.pr_number }};
+            const { data: pr } = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const labels = pr.labels.map(l => l.name);
+            let bump = 'patch';
+            if (labels.includes('version:major')) bump = 'major';
+            else if (labels.includes('version:minor')) bump = 'minor';
+            else if (labels.includes('version:patch')) bump = 'patch';
+            else console.log('No version label found — defaulting to patch');
+            core.setOutput('bump', bump);
+
+
 
       - name: Bump version
         id: bump_version
@@ -50,22 +91,30 @@ jobs:
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
           case "${{ steps.bump.outputs.bump }}" in
-            major)
+              major)
               MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-            minor)
+              minor)
               MINOR=$((MINOR + 1)); PATCH=0 ;;
-            patch)
+              patch)
               PATCH=$((PATCH + 1)) ;;
           esac
 
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           echo "New version: $NEW_VERSION"
           jq --arg v "$NEW_VERSION" '.version = $v' version.json > tmp && mv tmp version.json
+          jq --arg v "$NEW_VERSION" '.version = $v' package.json > tmp && mv tmp package.json
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update package-lock.json
+        run: |
+          npm install --package-lock-only
 
       - name: Commit and tag new version
         run: |
           git add version.json
-          git commit -m "Bump version to ${{ steps.bump_version.outputs.new_version }}"
+          git add package.json
+          git add package-lock.json
+          
+          git commit -m "Bump version to v${{ steps.bump_version.outputs.new_version }}"
           git tag "v${{ steps.bump_version.outputs.new_version }}"
           git push origin main --tags
