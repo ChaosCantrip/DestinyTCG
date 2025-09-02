@@ -45,11 +45,11 @@ jobs:
         run: |
           echo "bump=patch" >> $GITHUB_ENV
           if [[ "${{ inputs.pr-labels }}" == *"version:major"* ]]; then
-            echo "bump=major" >> $GITHUB_ENV
+            echo "bump=major" >> $GITHUB_OUTPUT
           elif [[ "${{ inputs.pr-labels }}" == *"version:minor"* ]]; then
-            echo "bump=minor" >> $GITHUB_ENV
+            echo "bump=minor" >> $GITHUB_OUTPUT
           elif [[ "${{ inputs.pr-labels }}" == *"version:patch"* ]]; then
-            echo "bump=patch" >> $GITHUB_ENV
+            echo "bump=patch" >> $GITHUB_OUTPUT
           else
             echo "No version label found — defaulting to patch"
           fi
