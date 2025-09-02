@@ -46,10 +46,13 @@ jobs:
           echo "bump=patch" >> $GITHUB_ENV
           if [[ "${{ inputs.pr-labels }}" == *"version:major"* ]]; then
             echo "bump=major" >> $GITHUB_OUTPUT
+            echo "Bump type: major"
           elif [[ "${{ inputs.pr-labels }}" == *"version:minor"* ]]; then
             echo "bump=minor" >> $GITHUB_OUTPUT
+            echo "Bump type: minor"
           elif [[ "${{ inputs.pr-labels }}" == *"version:patch"* ]]; then
             echo "bump=patch" >> $GITHUB_OUTPUT
+            echo "Bump type: patch"
           else
             echo "No version label found — defaulting to patch"
           fi
