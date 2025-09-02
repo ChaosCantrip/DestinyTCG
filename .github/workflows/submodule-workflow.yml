@@ -13,16 +13,16 @@ on:
         default: "dev@chaoscantrip.com"
         required: false
         type: string
-      version_file:
+      version-file:
         description: "The file containing the version number"
         default: "version.json"
         required: false
         type: string
-      pr_number:
+      pr-number:
         description: "The pull request number to operate on"
         required: true
         type: number
-      pr_labels:
+      pr-labels:
         description: "The labels applied to the pull request"
         required: true
         type: string
@@ -46,9 +46,9 @@ jobs:
   bump-version-number:
     uses: ChaosCantrip/DestinyTCG/.github/workflows/bump-version.yml@main
     with:
-      pr_number: ${{ inputs.pr_number }}
-      pr_labels: ${{ inputs.pr_labels }}
-      version_file: ${{ inputs.version_file }}
+      pr-number: ${{ inputs.pr-number }}
+      pr-labels: ${{ inputs.pr-labels }}
+      version-file: ${{ inputs.version-file }}
       username: ${{ inputs.username }}
       email: ${{ inputs.email }}
 

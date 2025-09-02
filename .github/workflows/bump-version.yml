@@ -3,11 +3,11 @@ name: Bump Version on PR Merge
 on:
   workflow_call:
     inputs:
-      pr_number:
+      pr-number:
         description: "The pull request number to operate on"
         required: true
         type: number
-      pr_labels:
+      pr-labels:
         description: "The labels applied to the pull request"
         required: true
         type: string
@@ -44,11 +44,11 @@ jobs:
         id: bump
         run: |
           echo "bump=patch" >> $GITHUB_ENV
-          if [[ "${{ inputs.pr_labels }}" == *"version:major"* ]]; then
+          if [[ "${{ inputs.pr-labels }}" == *"version:major"* ]]; then
             echo "bump=major" >> $GITHUB_ENV
-          elif [[ "${{ inputs.pr_labels }}" == *"version:minor"* ]]; then
+          elif [[ "${{ inputs.pr-labels }}" == *"version:minor"* ]]; then
             echo "bump=minor" >> $GITHUB_ENV
-          elif [[ "${{ inputs.pr_labels }}" == *"version:patch"* ]]; then
+          elif [[ "${{ inputs.pr-labels }}" == *"version:patch"* ]]; then
             echo "bump=patch" >> $GITHUB_ENV
           else
             echo "No version label found — defaulting to patch"
