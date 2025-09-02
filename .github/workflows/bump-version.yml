@@ -85,7 +85,7 @@ jobs:
 
       - name: Delete tag on remote if it exists
         run: |
-          git tag -d "v${{ steps.bump_version.outputs.new_version }}" || true
+          git push --delete "v${{ steps.bump_version.outputs.new_version }}" || true
 
       - name: Commit and tag new version
         run: |
