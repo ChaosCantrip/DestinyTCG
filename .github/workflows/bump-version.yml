@@ -21,7 +21,7 @@ on:
         default: "dev@chaoscantrip.com"
         required: false
         type: string
-      version_file:
+      version-file:
         description: "The file containing the version number"
         default: "version.json"
         required: false
