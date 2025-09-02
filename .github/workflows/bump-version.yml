@@ -83,6 +83,10 @@ jobs:
         run: |
           npm install --package-lock-only
 
+      - name: Delete tag on remote if it exists
+        run: |
+          git tag -d "v${{ steps.bump_version.outputs.new_version }}" || true
+
       - name: Commit and tag new version
         run: |
           git add version.json
