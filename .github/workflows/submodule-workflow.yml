@@ -22,6 +22,10 @@ on:
         description: "The pull request number to operate on"
         required: true
         type: number
+      pr_labels:
+        description: "The labels applied to the pull request"
+        required: true
+        type: string
       commit-sha:
           description: "The commit SHA to use for the submodule"
           required: true
@@ -43,6 +47,7 @@ jobs:
     uses: ChaosCantrip/DestinyTCG/.github/workflows/bump-version.yml@main
     with:
       pr_number: ${{ inputs.pr_number }}
+      pr_labels: ${{ inputs.pr_labels }}
       version_file: ${{ inputs.version_file }}
       username: ${{ inputs.username }}
       email: ${{ inputs.email }}

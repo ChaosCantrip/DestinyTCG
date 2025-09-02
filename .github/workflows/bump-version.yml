@@ -7,6 +7,10 @@ on:
         description: "The pull request number to operate on"
         required: true
         type: number
+      pr_labels:
+        description: "The labels applied to the pull request"
+        required: true
+        type: string
       username:
         description: "The username to use for git"
         default: "ChaosCantrip [Automated]"
@@ -38,24 +42,17 @@ jobs:
 
       - name: Determine bump type from label (default to patch)
         id: bump
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = ${{ inputs.pr_number }};
-            const { data: pr } = await github.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-            const labels = pr.labels.map(l => l.name);
-            let bump = 'patch';
-            if (labels.includes('version:major')) bump = 'major';
-            else if (labels.includes('version:minor')) bump = 'minor';
-            else if (labels.includes('version:patch')) bump = 'patch';
-            else console.log('No version label found — defaulting to patch');
-            core.setOutput('bump', bump);
-
-
+        run: |
+          echo "bump=patch" >> $GITHUB_ENV
+          if [[ "${{ inputs.pr_labels }}" == *"version:major"* ]]; then
+            echo "bump=major" >> $GITHUB_ENV
+          elif [[ "${{ inputs.pr_labels }}" == *"version:minor"* ]]; then
+            echo "bump=minor" >> $GITHUB_ENV
+          elif [[ "${{ inputs.pr_labels }}" == *"version:patch"* ]]; then
+            echo "bump=patch" >> $GITHUB_ENV
+          else
+            echo "No version label found — defaulting to patch"
+          fi
 
       - name: Bump version
         id: bump_version
