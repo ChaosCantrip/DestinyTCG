@@ -1,18 +1,18 @@
 name: "Sync dev Branch with main"
 
 on:
-    workflow_call:
-        inputs:
-            username:
-                description: "The username to use for git"
-                default: "ChaosCantrip [Automated]"
-                required: false
-                type: string
-            email:
-                description: "The email to use for git"
-                default: "dev@chaoscantrip.com"
-                required: false
-                type: string
+  workflow_call:
+    inputs:
+      username:
+        description: "The username to use for git"
+        default: "ChaosCantrip [Automated]"
+        required: false
+        type: string
+      email:
+        description: "The email to use for git"
+        default: "dev@chaoscantrip.com"
+        required: false
+        type: string
 
 jobs:
   sync-dev:
