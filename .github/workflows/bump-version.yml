@@ -1,15 +1,17 @@
-name: Bump Version on PR Merge
+name: Bump Version Number
 
 on:
   workflow_call:
     inputs:
-      pr-number:
-        description: "The pull request number to operate on"
+      update-type:
+        description: "The type of update to apply"
+        default: "patch"
         required: true
-        type: number
-      pr-labels:
-        description: "The labels applied to the pull request"
-        required: true
+        type: string
+      version-file:
+        description: "The file containing the version number"
+        default: "version.json"
+        required: false
         type: string
       username:
         description: "The username to use for git"
@@ -21,16 +23,12 @@ on:
         default: "dev@chaoscantrip.com"
         required: false
         type: string
-      version-file:
-        description: "The file containing the version number"
-        default: "version.json"
-        required: false
-        type: string
 
 jobs:
-  bump-version:
+  get-new-version-number:
     runs-on: ubuntu-latest
-
+    outputs:
+      new_version: ${{ steps.get-new-version-number.outputs.new-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3   
@@ -40,30 +38,14 @@ jobs:
           git config user.name "${{ inputs.username }}"
           git config user.email "${{ inputs.email }}"
 
-      - name: Determine bump type from label (default to patch)
-        id: bump
-        run: |
-          echo "bump=patch" >> $GITHUB_OUTPUT
-          if [[ "${{ inputs.pr-labels }}" == *"version:major"* ]]; then
-            echo "bump=major" >> $GITHUB_OUTPUT
-            echo "Bump type: major"
-          elif [[ "${{ inputs.pr-labels }}" == *"version:minor"* ]]; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
-            echo "Bump type: minor"
-          elif [[ "${{ inputs.pr-labels }}" == *"version:patch"* ]]; then
-            echo "bump=patch" >> $GITHUB_OUTPUT
-            echo "Bump type: patch"
-          else
-            echo "No version label found — defaulting to patch"
-          fi
-
-      - name: Bump version
-        id: bump_version
+      - name: Get new version number
+        id: get-new-version-number
         run: |
           VERSION=$(jq -r '.version' version.json)
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          echo "Current version: $VERSION"
 
-          case "${{ steps.bump.outputs.bump }}" in
+          case "${{ inputs.update-type }}" in
               major)
               MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
               minor)
@@ -78,20 +60,13 @@ jobs:
 
           NEW_VERSION="$MAJOR.$MINOR.$PATCH"
           echo "New version: $NEW_VERSION"
-          jq --arg v "$NEW_VERSION" '.version = $v' version.json > tmp && mv tmp version.json
-          jq --arg v "$NEW_VERSION" '.version = $v' package.json > tmp && mv tmp package.json
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Update package-lock.json
-        run: |
-          npm install --package-lock-only
-
-      - name: Commit and tag new version
-        run: |
-          git add version.json
-          git add package.json
-          git add package-lock.json
-          
-          git commit -m "Bump version to v${{ steps.bump_version.outputs.new_version }}"
-          git tag "v${{ steps.bump_version.outputs.new_version }}"
-          git push origin main --tags
+  set-new-version-number:
+    uses: ChaosCantrip/DestinyTCG/.github/workflows/set-version.yml@main
+    needs: get-new-version-number
+    with:
+      version-number: ${{ needs.get-new-version-number.outputs.new_version }}
+      version-file: ${{ inputs.version-file }}
+      username: ${{ inputs.username }}
+      email: ${{ inputs.email }}
