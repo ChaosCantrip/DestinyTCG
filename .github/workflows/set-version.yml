@@ -1,0 +1,78 @@
+name: Set Version Number
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-number:
+        description: "The new version number to set"
+        required: true
+        type: string
+      version-file:
+        description: "The file containing the version number"
+        default: "version.json"
+        required: false
+        type: string
+      username:
+        description: "The username to use for git"
+        default: "ChaosCantrip [Automated]"
+        required: false
+        type: string
+      email:
+        description: "The email to use for git"
+        default: "dev@chaoscantrip.com"
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version-number:
+        description: "The new version number to set"
+        required: true
+        type: string
+      version-file:
+        description: "The file containing the version number"
+        default: "version.json"
+        required: false
+        type: string
+      username:
+        description: "The username to use for git"
+        default: "ChaosCantrip [Automated]"
+        required: false
+        type: string
+      email:
+        description: "The email to use for git"
+        default: "dev@chaoscantrip.com"
+        required: false
+        type: string
+
+jobs:
+  set-version-number:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3   
+
+      - name: Set up Git
+        run: |
+          git config user.name "${{ inputs.username }}"
+          git config user.email "${{ inputs.email }}"
+
+      - name: Set version number
+        run: |
+          jq --arg v "${{ inputs.version-number }}" '.version = $v' version.json > tmp && mv tmp version.json
+          jq --arg v "${{ inputs.version-number }}" '.version = $v' package.json > tmp && mv tmp package.json
+          echo "new_version=${{ inputs.version-number }}" >> $GITHUB_OUTPUT
+
+      - name: Update package-lock.json
+        run: |
+          npm install --package-lock-only
+
+      - name: Commit and tag new version
+        run: |
+          git add version.json
+          git add package.json
+          git add package-lock.json
+
+          git commit -m "Bump version to v${{ inputs.version-number }}"
+          git tag "v${{ inputs.version-number }}"
+          git push origin main --tags
