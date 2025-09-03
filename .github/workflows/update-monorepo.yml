@@ -1,33 +1,33 @@
 name: Update Monorepo Submodule Pointer
 
 on:
-    workflow_call:
-        inputs:
-            commit-sha:
-                description: "The commit SHA to use for the submodule"
-                required: true
-                type: string
-            submodule-reference:
-                description: "The submodule reference to update"
-                required: true
-                type: string
-            username:
-                description: "The username to use for git"
-                default: "ChaosCantrip [Automated]"
-                required: false
-                type: string
-            email:
-                description: "The email to use for git"
-                default: "dev@chaoscantrip.com"
-                required: false
-                type: string
-        secrets:
-            monorepo-read-pat:
-                description: "The DestinyTCG Read PAT"
-                required: true
-            monorepo-write-pat:
-                description: "The DestinyTCG Monorepo Write PAT"
-                required: true
+  workflow_call:
+    inputs:
+      commit-sha:
+        description: "The commit SHA to use for the submodule"
+        required: true
+        type: string
+      submodule-reference:
+        description: "The submodule reference to update"
+        required: true
+        type: string
+      username:
+        description: "The username to use for git"
+        default: "ChaosCantrip [Automated]"
+        required: false
+        type: string
+      email:
+        description: "The email to use for git"
+        default: "dev@chaoscantrip.com"
+        required: false
+        type: string
+    secrets:
+      monorepo-read-pat:
+        description: "The DestinyTCG Read PAT"
+        required: true
+      monorepo-write-pat:
+        description: "The DestinyTCG Monorepo Write PAT"
+        required: true
 
 jobs:
   update-monorepo:
