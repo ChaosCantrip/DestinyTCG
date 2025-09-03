@@ -28,6 +28,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check Version Number
+        run: |
+          if [[ ! "${{ inputs.version-number }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format: '${{ inputs.version-number }}'. Expected format: X.Y.Z"
+            exit 1
+          fi
+        shell: bash
+
+
       - name: Checkout code
         uses: actions/checkout@v3   
 
