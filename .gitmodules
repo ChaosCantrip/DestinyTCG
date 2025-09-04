@@ -1,20 +1,20 @@
 [submodule "apps/api"]
 	path = apps/api
 	url = https://github.com/ChaosCantrip/DestinyTCG.API.git
-	branch = main
+	branch = dev
 [submodule "apps/website"]
 	path = apps/website
 	url = https://github.com/ChaosCantrip/DestinyTCG.Website.git
-	branch = main
+	branch = dev
 [submodule "apps/mobile-website"]
 	path = apps/mobile-website
 	url = https://github.com/ChaosCantrip/DestinyTCG.MobileWebsite.git
-	branch = main
+	branch = dev
 [submodule "apps/discord-bot"]
 	path = apps/discord-bot
 	url = https://github.com/ChaosCantrip/DestinyTCG.DiscordBot.git
-	branch = main
+	branch = dev
 [submodule "apps/polling-service"]
 	path = apps/polling-service
 	url = https://github.com/ChaosCantrip/DestinyTCG.PollingService.git
-	branch = main
+	branch = dev
