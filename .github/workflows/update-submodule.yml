@@ -34,6 +34,7 @@ jobs:
 
       - name: Update submodule to new commit
         run: |
+          git submodule update --remote --checkout apps/${{ env.SUBMODULE }}
           cd apps/${{ env.SUBMODULE }}
           git fetch origin
           git checkout ${{ env.NEW_COMMIT }}
