@@ -14,3 +14,7 @@
 	path = apps/api
 	url = https://github.com/ChaosCantrip/DestinyTCG.API.git
 	branch = dev
+[submodule "discord-bot-dev"]
+	path = apps/discord-bot
+	url = https://github.com/ChaosCantrip/DestinyTCG.DiscordBot.git
+	branch = dev
