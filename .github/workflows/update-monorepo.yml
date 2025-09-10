@@ -76,4 +76,4 @@ jobs:
         working-directory: DestinyTCG
         run: |
           git remote set-url origin https://x-access-token:${{ secrets.monorepo-write-pat }}@github.com/ChaosCantrip/DestinyTCG.git
-          git push origin main
+          git push origin ${{ inputs.branch }}
