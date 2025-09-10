@@ -2,3 +2,7 @@
 	path = apps/website
 	url = https://github.com/ChaosCantrip/DestinyTCG.Website.git
 	branch = main
+[submodule "mobile-website-main"]
+	path = apps/mobile-website
+	url = https://github.com/ChaosCantrip/DestinyTCG.MobileWebsite.git
+	branch = main
