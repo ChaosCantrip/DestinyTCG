@@ -1,0 +1,4 @@
+[submodule "website-dev"]
+	path = apps/website
+	url = https://github.com/ChaosCantrip/DestinyTCG.Website.git
+	branch = dev
