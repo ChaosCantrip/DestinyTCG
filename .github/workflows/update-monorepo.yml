@@ -1,0 +1,79 @@
+name: Update Monorepo Submodule Pointer
+
+on:
+  workflow_call:
+    inputs:
+      submodule-reference:
+        description: "The submodule reference to update"
+        required: true
+        type: string
+      branch:
+        description: "The branch to update"
+        required: true
+        type: string
+      commit-sha:
+        description: "The commit SHA to use for the submodule"
+        required: true
+        type: string
+      username:
+        description: "The username to use for git"
+        default: "ChaosCantrip [Automated]"
+        required: false
+        type: string
+      email:
+        description: "The email to use for git"
+        default: "dev@chaoscantrip.com"
+        required: false
+        type: string
+    secrets:
+      monorepo-read-pat:
+        description: "The DestinyTCG Read PAT"
+        required: true
+      monorepo-write-pat:
+        description: "The DestinyTCG Monorepo Write PAT"
+        required: true
+
+jobs:
+  update-monorepo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone monorepo
+        run: |
+          git clone https://x-access-token:${{ secrets.monorepo-read-pat }}@github.com/ChaosCantrip/DestinyTCG.git
+
+      - name: Checkout branch
+        working-directory: DestinyTCG
+        run: |
+          git checkout ${{ inputs.branch }}
+
+      - name: Sync submodule
+        working-directory: DestinyTCG
+        run: |
+          git submodule sync apps/${{ inputs.submodule-reference }}
+          git submodule update --init apps/${{ inputs.submodule-reference }}
+
+      - name: Configure git
+        working-directory: DestinyTCG
+        run: |
+          git config user.name "${{ inputs.username }}"
+          git config user.email "${{ inputs.email }}"
+
+      - name: Update submodule pointer
+        working-directory: DestinyTCG/apps/${{ inputs.submodule-reference }}
+        run: |
+          git fetch origin ${{ inputs.commit-sha }}
+          git checkout ${{ inputs.commit-sha }}
+
+      - name: Commit changes
+        working-directory: DestinyTCG
+        run: |
+          git add apps/${{ inputs.submodule-reference }}
+          SHORT_SHA=$(cd apps/${{ inputs.submodule-reference }} && git rev-parse --short HEAD)
+          git commit -m "Update ${{ inputs.submodule-reference }} submodule to ${SHORT_SHA}" || echo "No changes to commit"
+
+      - name: Set write PAT and push to monorepo
+        working-directory: DestinyTCG
+        run: |
+          git remote set-url origin https://x-access-token:${{ secrets.monorepo-write-pat }}@github.com/ChaosCantrip/DestinyTCG.git
+          git push origin main
