@@ -18,3 +18,7 @@
 	path = apps/discord-bot
 	url = https://github.com/ChaosCantrip/DestinyTCG.DiscordBot.git
 	branch = main
+[submodule "polling-service-main"]
+	path = apps/polling-service
+	url = https://github.com/ChaosCantrip/DestinyTCG.PollingService.git
+	branch = main
