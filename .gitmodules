@@ -10,3 +10,7 @@
 	path = apps/admin-website
 	url = https://github.com/ChaosCantrip/DestinyTCG.AdminWebsite.git
 	branch = main
+[submodule "api-main"]
+	path = apps/api
+	url = https://github.com/ChaosCantrip/DestinyTCG.API.git
+	branch = main
